@@ -1,7 +1,7 @@
 var filename = "Untitled";
-var AI_name = "高性能电子头脑";
+var AI_name = "High-performance electronic brain";
 var hintMsgs = [];
-hintMsgs[0] = "在这个回合取得胜利！";
+hintMsgs[0] = "Win this round!";
 var _popmenu;
 var dragging = false;
 var putting = false;
@@ -16,7 +16,7 @@ var isIE = /*@cc_on!@*/!1;
 var IE10 = isIE && parseInt($.browser.version) >= 10;
 var current_page ;
 var page_num;
-var table_row = 6;//Math.floor((getViewSize().h-250)/64);
+var table_row = 12;//Math.floor((getViewSize().h-250)/64);
 var MZONE = 0;
 var SZONE = 1;
 var FIELD = 2;
@@ -55,11 +55,9 @@ var PLAYER_0 = [
 ];
 var COORDINATE = [PLAYER_0,PLAYER_1];
 
-var locale = 'zh';
-var cards_url = "http://my-card.in/cards";
 
-var card_img_url = "http://my-card.in/images/cards/ygocore/";
-var card_img_thumb_url = "http://my-card.in/images/cards/ygocore/thumbnail/";
+var card_img_url = "https://images.ygoprodeck.com/images/cards/";
+var card_img_thumb_url = "https://images.ygoprodeck.com/images/cards_small/";
 
 var datas = new Object();
 
@@ -119,13 +117,13 @@ function initField(){
 		modal: true,
 		width: 350,
 		buttons: {
-			"确定": function() {
+			"OK": function() {
 				settingOK(this);
 				$( this ).dialog({hide: "clip"});
 				$( this ).dialog( "close" );
 				$( this ).dialog({hide: "puff"});
 			},
-			"取消": function() {
+			"Cancel": function() {
 				$( this ).dialog( "close" );
 			}
 		}
@@ -148,31 +146,11 @@ function initField(){
 		});
 		$('#box_img').attr("src", "images/qm.png");
 	});
-//*test 黑羽
 
 	current_page = 1;
 	page_num = 0;
 	html = "";
-	for( var i in default_result){
-	
-		var card = default_result[i];
-		datas[card._id]=card;
-		if(i%table_row==0){
-			page_num ++;
-			html = html + "<table class='page' style='display:none'>";
-			html = html + "<tr>";
-			html = html + "<th width='46px'>卡图</th>";
-			html = html + "<th >卡名</th>";
-			html = html + "</tr>";
-		}
-		html = html + "<tr>";
-		html = html + "<td><img class='thumbImg' src='" + card_img_thumb_url + card._id + ".jpg' style='cursor:pointer;'>" + "</td>";
-		html = html + "<td width=200px><div class='cardname'>" + card.name + "</div></td>";
-		html = html + "</tr>";
-		if(((i+1)%table_row==0) || (i==default_result.length)){
-			html = html+ "</table>";
-		}
-	}
+
 	var tables = document.getElementById("result");
 	$(tables).html(html);
 	tablecloth();
@@ -185,111 +163,109 @@ function initField(){
 	}
 //*/
 }
-function search(){
+
+async function search() {
+	
 	var name = document.getElementById("keyword").value;
 	var page_button = document.getElementById("page_button");
+	
 	if(name == "")
 		return false;
-	var q = JSON.stringify( {name: {$regex: name.replace(/([.?*+^$[\]\\(){}|-])/g, '\\$1'), $options: 'i'}});
-	var locale_url = "http://my-card.in/cards_" + locale;
-	var url = locale_url + '?q=' + encodeURIComponent(q);
-    $.getJSON(url,function(result){
+	
+	try {
+		var cards = await cardByName(name);
 		var html = "";
-		if(result.length == 0){
+
+		if(cards.length == 0) {
 			setPageLabel();
 			page_button.style.display = 'none';
 			$("#result").html(html);
-			alert("未找到相关卡片");
+			alert("No related cards found");
 			return false;
 		}
-		var cards_id = [];
-		for (var _i in result) {
-			cards_id.push(result[_i]._id);
-		}
-		$.getJSON(cards_url + "?q=" + (JSON.stringify({_id: {$in: cards_id}})), function(cards) {
-			for(var i in cards){
-				var card = cards[i];
-				var name = '';
-				var desc = '';
-				for(var j in result){
-					if(result[j]._id == card._id){
-						name = result[j].name;
-						desc = result[j].desc;
-						break;
-					}
-				}
-				var star = "";
-				for(var i=0; i<(card.level&0xff); i++){
-					star += "★";
-				}
-				var data = {
-					"_id": card._id,
-					"name": name,
-					"type": getType(card),
-					"atk": card.atk,
-					"def": card.def,
-					"level": card.level,
-					"star": star,
-					"race": getRace(card),
-					"attribute": getAttribute(card),
-					"desc": desc
-				};
-				datas[card._id]=data;
+		
+		for(var i in cards) {
+			var card = cards[i];
+			var star = "";
+
+			for(var i=0; i<(card.level&0xff); i++){
+				star += "★";
 			}
-			current_page = 1;
-			page_num = 0;
-			$.each(result, function(i, card){
-				if(i%table_row==0){
-					page_num ++;
-					html = html + "<table class='page' style='display:none'>";
-					html = html + "<tr>";
-					html = html + "<th width='46px'>卡图</th>";
-					html = html + "<th >卡名</th>";
-					html = html + "</tr>";
-				}
+			// Data from cards db
+			var data = {
+				"_id": card.id,
+				"name": card.name,
+				"type": getType(card),
+				"atk": card.atk,
+				"def": card.def,
+				"level": card.level,
+				"star": star,
+				"race": getRace(card),
+				"attribute": getAttribute(card),
+				"desc": card.desc
+			};
+			datas[card.id]=data;
+		}
+		current_page = 1;
+		page_num = 0;
+		
+		$.each(cards, function(i, card){
+			if(i%table_row==0){
+				page_num ++;
+				html = html + "<table class='page' style='display:none'>";
 				html = html + "<tr>";
-				html = html + "<td><img class='thumbImg' src='" + card_img_thumb_url + card._id + ".jpg' style='cursor:pointer;'>" + "</td>";
-				html = html + "<td width=200px><div class='cardname'>" + card.name + "</div></td>";
+				html = html + "<th width='46px'>Image</th>";
+				html = html + "<th>Name</th>";
 				html = html + "</tr>";
-				if(((i+1)%table_row==0) || (i==result.length)){
-					html = html+ "</table>";
-				}
-			});
-			var tables = document.getElementById("result");
-			$(tables).html(html);
-			tablecloth();
-			page_button.style.display = 'block';
-			setPageLabel(current_page, page_num);
-			showPage(current_page);
-			var thumbs = tables.getElementsByClassName("thumbImg");
-			for (var i=0; i< thumbs.length;i++){
-				makeDraggable(thumbs[i]);
+			}
+			html = html + "<tr>";
+			html = html + "<td><img class='thumbImg' src='" + card_img_thumb_url + card.id + ".jpg' style='cursor:pointer;'>" + "</td>";
+			html = html + "<td width=200px><div class='cardname'>" + card.name + "</div></td>";
+			html = html + "</tr>";
+			if(((i+1)%table_row==0) || (i==result.length)){
+				html = html+ "</table>";
 			}
 		});
-	});
+		var tables = document.getElementById("result");
+		$(tables).html(html);
+		tablecloth();
+		page_button.style.display = 'block';
+		setPageLabel(current_page, page_num);
+		showPage(current_page);
+		var thumbs = tables.getElementsByClassName("thumbImg");
+		for (var i=0; i< thumbs.length;i++){
+			makeDraggable(thumbs[i]);
+		}
+	} catch (err) {
+		console.error(err);
+		alert("An error occurred while searching for cards.");
+	}
 }
-function prePage(){ //上一页
+
+function prePage(){ //Previous Page
 	if(current_page == 1) return false;
 	current_page--;
 	setPageLabel(current_page, page_num);
 	showPage(current_page);
 }
-function nextPage(){//下一页
+
+function nextPage(){//Next Page
 	if(current_page == page_num) return false;
 	current_page++;
 	setPageLabel(current_page, page_num);
 	showPage(current_page)
 }
-function showPage(current_page){//显示current页
+
+function showPage(current_page){//Show current page
 	var tables = document.getElementsByTagName('table');
 	for(var i=0; i<tables.length; i++){
-		if(i == current_page -1) //current为1时显示table[0]
+		if(i == current_page -1) //current for 1 shows table[0]
 			tables[i].style.display = "block";
 		else
 			tables[i].style.display = "none";
 	}
 }
-function setPageLabel(current_page, page_num) {//显示第X页/共X页
+function setPageLabel(current_page, page_num) {//Show Page X / Total X Pages
 	var page_label = $('.page_label');
 	var built = $('#page-tmpl').tmpl({
 		current_page: current_page || 0,
@@ -297,7 +273,7 @@ function setPageLabel(current_page, page_num) {//显示第X页/共X页
 	});
 	page_label.html(built);
 }
-function addField(player, location, place) {//画场地
+function addField(player, location, place) {//Draw field
 	var top, left;
 	top = COORDINATE[player][location].top;
 	left = COORDINATE[player][location].left + 66*place;
@@ -323,7 +299,7 @@ function addCard(field, card_info){
 	var tmplItem = $(field).tmplItem().data;
 	var location = tmplItem.location;
 	var card_list = $.data(field, 'card_list');
-	if(location == "location_szone" || location == "location_field"|| location == "location_fzone"||location == "location_pzone"){ //魔陷区和场地区最多只能有1张卡
+	if(location == "location_szone" || location == "location_field"|| location == "location_fzone"||location == "location_pzone"){ //S/T zones and Field zones can only hold 1 card
 		card_list = [];
 	}
 	card_list.push(card_info);
@@ -400,14 +376,14 @@ function updateCards(thumbs){
 		var card_id = card_info.card_id;
 		var thumbImg = thumb.getElementsByTagName("img")[0];
 		thumb.addAllRelation();
-		if(location == "location_szone" || location == "location_field"){ //魔陷区和场地区只分表侧和里侧
+		if(location == "location_szone" || location == "location_field"){ //S/T and Field zones only have face-up/face-down positions
 			if(card_info.position == "POS_FACEDOWN_ATTACK" || card_info.position == "POS_FACEDOWN_DEFENCE")
 				card_info.position = "POS_FACEDOWN_ATTACK";
 			else
 				card_info.position = "POS_FACEUP_ATTACK";
 		}
 		else if(location == "location_mzone"){
-			if(1 < thumbs.length && i < thumbs.length-1){//超量素材
+			if(1 < thumbs.length && i < thumbs.length-1){//XYZ Material
 				card_info.position = "POS_FACEUP_ATTACK";
 				card_info.IsXYZmaterial = true;
 			}
@@ -415,7 +391,7 @@ function updateCards(thumbs){
 				card_info.IsXYZmaterial = false;
 			}
 		}
-		else if(location != "location_mzone"){//除魔陷和怪兽区
+		else if(location != "location_mzone"){//Zones other than S/T and Monster
 			card_info.position = "POS_FACEUP_ATTACK";
 		}
 		if(card_info.position == "POS_FACEUP_ATTACK"){
@@ -514,7 +490,7 @@ var up;
 function mouseUp(ev){
 	ev         = ev || window.event;
 	var target = ev.target || ev.srcElement;
-	if(ev.button == 0 || ev.button == 1){//鼠标左键，ie是0，其他是1
+	if(ev.button == 0 || ev.button == 1){//Left click, 0 for IE, 1 for others
 		var dragImage  = document.getElementById('DragImage');
 		if(dragging){
 			dragging = false;

@@ -1,4 +1,3 @@
-
 Number.prototype.NaN0=function(){return isNaN(this)?0:this;}
 function makeDraggable(thumb){
 	var parent = thumb.parentNode.parentNode;
@@ -27,7 +26,7 @@ function makeDraggable(thumb){
 		var card_id = parseInt(thumb.src.substring(49,x));
 		showDetail(card_id);
 	}
-	//与图片相邻的表格也可以拖动
+	// The table adjacent to the image can also be dragged
 	parent.childNodes[1].childNodes[0].onmouseover = thumb.onmouseover;
 	parent.childNodes[1].childNodes[0].onmousedown = thumb.onmousedown;
 }
@@ -95,7 +94,7 @@ function makeMoveable(thumb){
 			dragImage.style.top      = mousePos.y - 32 + "px";
 			dragImage.style.display  = "block";
 			
-			//remove this card forn field
+			//remove this card from field
 			thumbImg.onmouseout();
 			thumb.removeAllRelation();
 			$(document).tooltip( "destroy" );
@@ -121,23 +120,23 @@ function makeMoveable(thumb){
 	
 		var str="";
 		if(card_info.attack != undefined){
-			str += "攻击力：" + card_info.attack + "</br>";
+			str += "Attack: " + card_info.attack + "</br>";
 		}
 		if(card_info.base_attack != undefined){
-			str += "原本攻击力：" + card_info.base_attack + "</br>";
+			str += "Base Attack: " + card_info.base_attack + "</br>";
 		}
 		if(card_info.defence != undefined){
-			str += "防御力：" + card_info.defence + "</br>";
+			str += "Defense: " + card_info.defence + "</br>";
 		}
 		if(card_info.base_defence != undefined){
-			str += "原本防御力：" + card_info.base_defence + "</br>";
+			str += "Base Defense: " + card_info.base_defence + "</br>";
 		}
 		if(card_info.level != undefined){
-			str += "怪兽等级：" + card_info.level + "</br>";
+			str += "Monster Level: " + card_info.level + "</br>";
 		}
 		if(card_counters.length){
 			for(var k = 0; k < card_counters.length; k++){
-				str += GetCounterStrByCode(card_counters[k].code) + " ：" + card_counters[k].number + "</br>";
+				str += GetCounterStrByCode(card_counters[k].code) + " : " + card_counters[k].number + "</br>";
 			}
 		}
 		thumb.title = str;

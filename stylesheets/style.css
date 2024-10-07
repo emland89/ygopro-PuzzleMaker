@@ -306,7 +306,7 @@ header p {
   color: #333333;
   text-align: left;
   height: 64px;
-  line-height: 60px;
+  line-height: 20px;
   cursor: pointer;
 }
 #DragImage {

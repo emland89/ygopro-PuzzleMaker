@@ -146,46 +146,42 @@ function SetPlayerInfo(player, lp, firstTurnDraw, everyTurnDraw){
 	//	AIEveryTurnDraw = everyTurnDraw;
 	}
 }
-function loadCards(cards_id,cards){
-	var locale_url = "http://my-card.in/cards_" + locale;
-	var url = locale_url + '?q=' + JSON.stringify({_id: {$in: cards_id}});
-    $.getJSON(url,function(result){
-		$.getJSON(cards_url + "?q=" + (JSON.stringify({_id: {$in: cards_id}})), function(_cards) {
-			for(var i in _cards){
-				var card = _cards[i];
-				var name = '';
-				var desc = '';
-				for(var j in result){
-					if(result[j]._id == card._id){
-						name = result[j].name;
-						desc = result[j].desc;
-						break;
-					}
-				}
-				var star = "";
-				for(var i=0; i<(card.level&0xff); i++){
-					star += "★";
-				}
-				var data = {
-					"_id": card._id,
-					"name": name,
-					"type": getType(card),
-					"atk": card.atk,
-					"def": card.def,
-					"level": card.level,
-					"star": star,
-					"race": getRace(card),
-					"attribute": getAttribute(card),
-					"desc": desc
-				};
-				datas[card._id]=data;
+function loadCards(cards_id, cards){
+	
+	cardByIds(cards_id, function(_cards) {
+		
+		for(var i in _cards){
+		
+			var card = _cards[i];
+			var name = '';
+			var desc = '';
+		
+			var star = "";
+			for(var i=0; i<(card.level&0xff); i++){
+				star += "★";
 			}
-			for(var i in cards){
-				loadCard(cards[i]);
-			}
-		});
+			
+			var data = {
+				"_id": card.id,
+				"name": name,
+				"type": getType(card),
+				"atk": card.atk,
+				"def": card.def,
+				"level": card.level,
+				"star": star,
+				"race": getRace(card),
+				"attribute": getAttribute(card),
+				"desc": desc
+			};
+
+			datas[card.id]=data;
+		}
+		// for(var i in cards){
+		// 	loadCard(cards[i]);
+		// }
 	});
 }
+
 function loadCard(card){
 	var card_info = new Object();
 	card_info.card_id = card.card_id;
